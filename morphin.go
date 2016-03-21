@@ -6,15 +6,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"log"
 	"os/exec"
 	"time"
-
 	"strings"
-
 	"github.com/codegangsta/cli"
 	klog "github.com/go-kit/kit/log"
 	"github.com/piotrkowalczuk/sklog"
+	"os/signal"
 )
 
 func morphin(ctx *cli.Context) {
@@ -30,7 +30,25 @@ func morphin(ctx *cli.Context) {
 		sklog.Info(l, fmt.Sprintf("%s!!!", strings.ToUpper(r.Name)), sklog.KeySubsystem, r.Name)
 	}
 
+	al := klog.NewContext(logger).With(sklog.KeySubsystem, "alpha", keyColorReset, colorReset)
+	defer func() {
+		if r := recover(); r != nil {
+			killAll(al)
+			fmt.Println("Recovered in f", r)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
 	end := make(chan struct{}, 1)
+
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for _ = range c {
+			killAll(al)
+			end <- struct{}{}
+		}
+	}()
+
 	for _, r := range af.Service {
 		<-time.After(1 * time.Second)
 		go morphRanger(r, logger)
@@ -44,7 +62,7 @@ func morphRanger(s *Service, l klog.Logger) {
 		cmd := exec.Command(s.Name, JoinArgs(s.Arguments)...)
 
 		if err := run(cmd, s, rl); err != nil {
-			if cmd.ProcessState != nil && cmd.ProcessState.Exited() {
+			if cmd.ProcessState != nil && cmd.ProcessState.Exited()  {
 				sklog.Error(rl, fmt.Errorf("service will be restarted because of error: %s", err.Error()))
 				continue
 			}
@@ -71,8 +89,21 @@ func run(c *exec.Cmd, s *Service, l klog.Logger) error {
 	}
 	multi = io.MultiReader(stdout, stderr)
 
+	// Open the pid file before starting the process so that if we get two
+	// programs trying to concurrently start a server on the same directory
+	// at the same time, only one should succeed.
+	pidf, err := openPIDFile(s.Name)
+	if err != nil {
+		return fmt.Errorf("cannot create %s.pid: %v", s.Name, err)
+	}
+	defer pidf.Close()
+
 	if err = c.Start(); err != nil {
 		return err
+	}
+
+	if _, err := fmt.Fprint(pidf, c.Process.Pid); err != nil {
+		return fmt.Errorf("cannot write %s.pid file: %v", s.Name, err)
 	}
 
 	sc(multi, s, l)
