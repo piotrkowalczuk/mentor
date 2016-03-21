@@ -52,4 +52,4 @@ service "prometheus" {
 
 ## License
 
-GNU General Public License v3.0, see LICENSE.
+[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl.txt), see [LICENSE](LICENSE).
