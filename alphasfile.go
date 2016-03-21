@@ -16,10 +16,10 @@ type variable struct {
 // Alphasfile ...
 type Alphasfile struct {
 	Variables map[string]*variable `hcl:"variable,"`
-	Rangers   []*Ranger            `hcl:"ranger,expand"`
+	Service   []*Service            `hcl:"service,expand"`
 }
 
-type Ranger struct {
+type Service struct {
 	Name      string                 `hcl:"name,key"`
 	Import    string                 `hcl:"import"`
 	Arguments map[string]interface{} `hcl:"arguments"`
@@ -49,7 +49,7 @@ func openAlphasfile(path string) (*Alphasfile, error) {
 		return nil, fmt.Errorf("alpha: Alphasfile parsing error: %s", err.Error())
 	}
 
-	for i, r := range af.Rangers {
+	for i, r := range af.Service {
 		if r.Color == "" {
 			r.Color = colors[i%len(colors)]
 		}

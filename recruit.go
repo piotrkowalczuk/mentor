@@ -18,7 +18,7 @@ func recruit(ctx *cli.Context) {
 	sklog.Log(logger, sklog.KeyMessage, "Alpha, Rita's escaped! Recruit a team of services with attitude!", sklog.KeyLevel, sklog.LevelWarning, sklog.KeySubsystem, "zordon")
 	sklog.Log(logger, sklog.KeyMessage, "Understood, Zordon!", sklog.KeySubsystem, "alpha", sklog.KeyLevel, sklog.LevelInfo)
 
-	for _, r := range af.Rangers {
+	for _, r := range af.Service {
 		install := exec.Command("go", "get", "-t", r.Import)
 		if err = run(install, r, logger); err != nil {
 			sklog.Fatal(logger, fmt.Errorf("Ayiyiyiyi!: %s", err.Error()), sklog.KeySubsystem, "alpha")

@@ -18,14 +18,14 @@ func powerup(ctx *cli.Context) {
 		log.Fatal(err)
 	}
 
-	if len(af.Rangers) == 0 {
+	if len(af.Service) == 0 {
 		return
 	}
 
-	sklog.Warning(rangerLogger(logger, af.Rangers[0]), "We need Thunderzord power now!", sklog.KeySubsystem, af.Rangers[0].Name)
+	sklog.Warning(serviceLogger(logger, af.Service[0]), "We need Thunderzord power now!", sklog.KeySubsystem, af.Service[0].Name)
 
-	for _, r := range af.Rangers {
-		rl := rangerLogger(logger, r)
+	for _, r := range af.Service {
+		rl := serviceLogger(logger, r)
 		check := exec.Command("git", "-C", src(gopath, r.Import), "diff", "--exit-code")
 		if err := run(check, r, klog.NewNopLogger()); err != nil {
 			if check.ProcessState.Exited() {

@@ -89,6 +89,6 @@ func src(gopath, pkg string) string {
 	return gopath + "/src/" + pkg
 }
 
-func rangerLogger(l log.Logger, r *Ranger) log.Logger {
+func serviceLogger(l log.Logger, r *Service) log.Logger {
 	return log.NewContext(l).With(sklog.KeySubsystem, r.Name, keyColor, r.Color, keyColorReset, colorReset)
 }

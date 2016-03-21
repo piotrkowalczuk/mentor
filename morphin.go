@@ -6,115 +6,76 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"os"
 	"os/exec"
-	"strings"
 	"time"
 
+	"strings"
+
+	"github.com/codegangsta/cli"
 	klog "github.com/go-kit/kit/log"
-	"github.com/hashicorp/hcl"
-	"github.com/mgutz/ansi"
 	"github.com/piotrkowalczuk/sklog"
 )
 
-var (
-	gopath string
-	dir    string
-	colors = []string{
-		ansi.LightGreen,
-		ansi.LightYellow,
-		ansi.LightBlue,
-		ansi.LightMagenta,
-		ansi.LightCyan,
-	}
-	colorLog   = ansi.ColorCode("black:green")
-	colorError = ansi.ColorCode("black:red")
-	colorReset = ansi.ColorCode("reset")
-)
-
-func init() {
-	var err error
-	gopath = os.Getenv("GOPATH")
-	dir, err = os.Getwd()
+func morphin(ctx *cli.Context) {
+	af, err := openAlphasfile(alphasFile)
 	if err != nil {
-		log.Fatalln(err.Error())
-	}
-}
-
-func morphin() {
-	logger := sklog.NewHumaneLogger(os.Stdout, formatter)
-	b, err := ioutil.ReadFile("Zordonfile")
-	if err != nil {
-		log.Fatalf("mentor: Zordonfile read error: %s", err.Error())
+		log.Fatal(err)
 	}
 
-	var zf Zordonfile
-	if err = hcl.Unmarshal(b, &zf); err != nil {
-		log.Fatalf("mentor: Zordonfile parsing error: %s", err.Error())
-	}
+	sklog.Log(logger, sklog.KeyMessage, "Rangers, you must act swiftly, the development environment is in grave danger!", sklog.KeyLevel, sklog.LevelWarning, sklog.KeySubsystem, "zordon")
 
-	logf("Rangers, you must act swiftly, the planet is in grave danger!")
-
-	for i, s := range zf.Services {
-		if s.Color == "" {
-			s.Color = colors[i%len(colors)]
-		}
-		install := exec.Command("go", "get", s.Path)
-		l := klog.NewContext(logger).With(keyColor, s.Color, keyColorReset, colorReset)
-		if err = ex(install, s, l); err != nil {
-			errorf("mentor", "Zordonfile parsing error: %s%s", err.Error())
-		}
-
-		logf("%s has been installed", s.Name)
+	for _, r := range af.Service {
+		l := klog.NewContext(logger).With(keyColor, r.Color, keyColorReset, colorReset)
+		sklog.Info(l, fmt.Sprintf("%s!!!", strings.ToUpper(r.Name)), sklog.KeySubsystem, r.Name)
 	}
 
 	end := make(chan struct{}, 1)
-	for _, ser := range zf.Services {
+	for _, r := range af.Service {
 		<-time.After(1 * time.Second)
-		go runService(ser, logger)
+		go morphRanger(r, logger)
 	}
 	<-end
 }
 
-func runService(s *Service, l klog.Logger) {
-	l = klog.NewContext(l).With(sklog.KeySubsystem, s.Name, keyColor, s.Color, keyColorReset, colorReset)
+func morphRanger(s *Service, l klog.Logger) {
+	rl := serviceLogger(l, s)
 	for {
 		cmd := exec.Command(s.Name, JoinArgs(s.Arguments)...)
 
-		err := ex(cmd, s, l)
-		if err != nil {
-			if cmd.ProcessState.Exited() {
-				errorf(s.Name, "service will be restarted because of error: %s", err.Error())
+		if err := run(cmd, s, rl); err != nil {
+			if cmd.ProcessState != nil && cmd.ProcessState.Exited() {
+				sklog.Error(rl, fmt.Errorf("service will be restarted because of error: %s", err.Error()))
 				continue
 			}
 
-			errorf(s.Name, "service has stoped with error: %s", err.Error())
+			sklog.Error(rl, fmt.Errorf("service has stoped with error: %s", err.Error()))
 			return
 		}
 	}
 }
 
-func ex(c *exec.Cmd, s *Service, l klog.Logger) error {
-	var err error
-
-	stderr, err := c.StderrPipe()
+func run(c *exec.Cmd, s *Service, l klog.Logger) error {
+	var (
+		err            error
+		stderr, stdout io.ReadCloser
+		multi          io.Reader
+	)
+	stderr, err = c.StderrPipe()
 	if err != nil {
 		return err
 	}
-
-	stdout, err := c.StdoutPipe()
+	stdout, err = c.StdoutPipe()
 	if err != nil {
 		return err
 	}
+	multi = io.MultiReader(stdout, stderr)
 
 	if err = c.Start(); err != nil {
 		return err
 	}
 
-	go sc(stdout, s, l)
-	sc(stderr, s, l)
+	sc(multi, s, l)
 
 	if err = c.Wait(); err != nil {
 		return err
@@ -149,14 +110,6 @@ ScanLoop:
 		}
 	}
 	if err := in.Err(); err != nil {
-		errorf("scan error: %s", err.Error())
+		sklog.Error(l, err, sklog.KeySubsystem, "alpha")
 	}
-}
-
-func logf(s string, args ...interface{}) {
-	fmt.Printf(" %s zordon %s %s \n", colorLog, colorReset, fmt.Sprintf(s, args...))
-}
-
-func errorf(n, s string, args ...interface{}) {
-	fmt.Printf(" %s %s %s %s \n", colorError, strings.ToUpper(n), colorReset, fmt.Sprintf(s, args...))
 }
