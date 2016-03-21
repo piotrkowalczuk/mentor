@@ -30,7 +30,7 @@ func init() {
 func main() {
 	app := cli.NewApp()
 	app.Name = "zordon"
-	app.Usage = "Defend development environment from Rita, and her endless waves of containers!"
+	app.Usage = "Defends development environment from Rita, and her endless waves of containers!"
 	app.Authors = []cli.Author{
 		{
 			Name:  "Piotr Kowalczuk",
