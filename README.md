@@ -16,7 +16,7 @@ $ go get github.com/piotrkowalczuk/zordon
 ## Commands
 
 * **morphintime** - starts all services in specified order. It performs restart on exit code 1.
-* **powerup** - is trying to update each service. If any change is found by git service will be skipped
+* **powerup** - is trying to update each service. If any change is found by git, service will be skipped
 * **recruit** - install all services
 
 ## Alphasfile
