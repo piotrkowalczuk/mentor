@@ -5,7 +5,8 @@ Then, using a single command, you create and start all the services from your co
 Any application that is go gettable can be used as one.
 
 ## Installation
-As any Go application:
+To build Zordon from the source code yourself you need to have a working Go environment.
+You can directly use the go tool to download and install the Zordon.
 
 ```bash
 $ go get github.com/piotrkowalczuk/zordon
@@ -14,14 +15,15 @@ $ go get github.com/piotrkowalczuk/zordon
 
 ## Commands
 
-* morphintime - starts all services in specified order. It performs restart on exit code 1.
-* powerup - is trying to update each service. If any change is found by git service will be skipped
-* recruit - install all services
+* **morphintime** - starts all services in specified order. It performs restart on exit code 1.
+* **powerup** - is trying to update each service. If any change is found by git service will be skipped
+* **recruit** - install all services
 
 ## Alphasfile
 Zordon can run services automatically by reading the instructions from a Alphasfile.
 A Alphasfile is a [hlc](https://github.com/hashicorp/hcl) document that contains all the definitions.
-Example document can looks like that:
+
+### Example
 
 ```hlc
 service "gnatsd" {
