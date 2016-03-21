@@ -50,3 +50,6 @@ service "prometheus" {
 
 ```
 
+## License
+
+GNU General Public License v3.0, see LICENSE.
