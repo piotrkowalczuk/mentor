@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"os/exec"
 
 	"github.com/codegangsta/cli"
 	"github.com/go-kit/kit/log"
@@ -94,6 +95,35 @@ func src(gopath, pkg string) string {
 	return gopath + "/src/" + pkg
 }
 
-func serviceLogger(l log.Logger, r *Service) log.Logger {
-	return log.NewContext(l).With(sklog.KeySubsystem, r.Name, keyColor, r.Color, keyColorReset, colorReset)
+func serviceLogger(l log.Logger, s *Service) log.Logger {
+	return log.NewContext(l).With(sklog.KeySubsystem, s.Name, keyColor, s.Color, keyColorReset, colorReset)
+}
+
+func isGitModifiedLocaly(s *Service) (bool, error) {
+	check := exec.Command("git", "-C", src(gopath, s.Import), "diff", "--exit-code")
+	if err := run(check, s, log.NewNopLogger()); err != nil {
+		if check.ProcessState.Exited() {
+			return true, nil
+		}
+		return false, err
+	}
+
+	return false, nil
+}
+
+func updateRepository(s *Service) (err error) {
+	fetch := exec.Command("git", "-C", src(gopath, s.Import), "fetch", "-q", "origin", s.Branch)
+	if err = run(fetch, s, logger); err != nil {
+		return
+	}
+	checkout := exec.Command("git", "-C", src(gopath, s.Import), "checkout", "-q", s.Branch)
+	if err = run(checkout, s, logger); err != nil {
+		return
+	}
+	pull := exec.Command("git", "-C", src(gopath, s.Import), "pull", "-q", "origin", s.Branch)
+	if err = run(pull, s, logger); err != nil {
+		return
+	}
+
+	return
 }

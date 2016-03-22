@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
-	klog "github.com/go-kit/kit/log"
 	"github.com/piotrkowalczuk/sklog"
 )
 
@@ -24,22 +23,28 @@ func powerup(ctx *cli.Context) {
 
 	sklog.Warning(serviceLogger(logger, af.Service[0]), "We need Thunderzord power now!", sklog.KeySubsystem, af.Service[0].Name)
 
-	for _, r := range af.Service {
-		rl := serviceLogger(logger, r)
-		check := exec.Command("git", "-C", src(gopath, r.Import), "diff", "--exit-code")
-		if err := run(check, r, klog.NewNopLogger()); err != nil {
-			if check.ProcessState.Exited() {
-				sklog.Warning(logger, fmt.Sprintf("Alpha and I will have to analyze your powers, %s, to see if they can be restored to you permanently.", r.Name), sklog.KeySubsystem, "zordon", keyColorReset, colorReset)
-				continue
-			}
+	for _, s := range af.Service {
+		rl := serviceLogger(logger, s)
+		modified, err := isGitModifiedLocaly(s)
+		if err != nil {
 			sklog.Fatal(rl, fmt.Errorf("Ayiyiyiyi!: %s", err.Error()), sklog.KeySubsystem, "alpha")
+		}
+		if modified {
+			sklog.Warning(logger, fmt.Sprintf("Alpha and I will have to analyze your powers, %s, to see if they can be restored to you permanently.", s.Name), sklog.KeySubsystem, "zordon", keyColorReset, colorReset)
+			continue
 		}
 
-		update := exec.Command("go", "get", "-u", "-t", r.Import)
-		if err := run(update, r, rl); err != nil {
-			sklog.Fatal(rl, fmt.Errorf("Ayiyiyiyi!: %s", err.Error()), sklog.KeySubsystem, "alpha")
+		if s.Branch == "" || s.Branch == "master" {
+			update := exec.Command("go", "get", "-u", "-t", s.Import)
+			if err := run(update, s, rl); err != nil {
+				sklog.Fatal(rl, fmt.Errorf("Ayiyiyiyi!: %s", err.Error()), sklog.KeySubsystem, "alpha")
+			}
+		} else {
+			if err := updateRepository(s); err != nil {
+				sklog.Fatal(rl, fmt.Errorf("Ayiyiyiyi!: %s", err.Error()), sklog.KeySubsystem, "alpha")
+			}
 		}
-		sklog.Info(rl, fmt.Sprintf("%s Thunderzord Power!", strings.ToTitle(r.Name)), sklog.KeySubsystem, r.Name)
+		sklog.Info(rl, fmt.Sprintf("%s Thunderzord Power!", strings.ToTitle(s.Name)), sklog.KeySubsystem, s.Name)
 	}
 
 	sklog.Log(logger, sklog.KeyMessage, "ThunderZords shall be yours, powerful and agile. When joined together, all shall form the Thunder MegaZord.", sklog.KeySubsystem, "zordon", sklog.KeyLevel, sklog.LevelInfo, keyColorReset, colorReset)
