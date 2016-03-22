@@ -97,22 +97,22 @@ func run(c *exec.Cmd, s *Service, l klog.Logger) error {
 	}
 	multi = io.MultiReader(stdout, stderr)
 
-	// Open the pid file before starting the process so that if we get two
-	// programs trying to concurrently start a server on the same directory
-	// at the same time, only one should succeed.
-	pidf, err := openPIDFile(s.Name)
-	if err != nil {
-		return fmt.Errorf("cannot create %s.pid: %v", s.Name, err)
-	}
-	defer pidf.Close()
+	//// Open the pid file before starting the process so that if we get two
+	//// programs trying to concurrently start a server on the same directory
+	//// at the same time, only one should succeed.
+	//pidf, err := openPIDFile(s.Name)
+	//if err != nil {
+	//	return fmt.Errorf("cannot create %s.pid: %v", s.Name, err)
+	//}
+	//defer pidf.Close()
 
 	if err = c.Start(); err != nil {
 		return err
 	}
 
-	if _, err := fmt.Fprint(pidf, c.Process.Pid); err != nil {
-		return fmt.Errorf("cannot write %s.pid file: %v", s.Name, err)
-	}
+	//if _, err := fmt.Fprint(pidf, c.Process.Pid); err != nil {
+	//	return fmt.Errorf("cannot write %s.pid file: %v", s.Name, err)
+	//}
 
 	sc(multi, s, l)
 
