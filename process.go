@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-	"github.com/piotrkowalczuk/sklog"
+
 	"github.com/go-kit/kit/log"
+	"github.com/piotrkowalczuk/sklog"
 )
 
 const (

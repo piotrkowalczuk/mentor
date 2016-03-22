@@ -16,7 +16,7 @@ type variable struct {
 // Alphasfile ...
 type Alphasfile struct {
 	Variables map[string]*variable `hcl:"variable,"`
-	Service   []*Service            `hcl:"service,expand"`
+	Service   []*Service           `hcl:"service,expand"`
 }
 
 type Service struct {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/go-kit/kit/log"
 	"github.com/mgutz/ansi"
@@ -57,6 +58,11 @@ func main() {
 			Description: "Rangers, you must act swiftly, the development environment is in grave danger!",
 			Action:      morphin,
 			Before:      summon,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "install",
+				},
+			},
 		},
 		{
 			Name:        "recruit",

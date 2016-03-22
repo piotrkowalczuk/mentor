@@ -6,15 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"log"
+	"os"
 	"os/exec"
-	"time"
+	"os/signal"
 	"strings"
+	"time"
+
 	"github.com/codegangsta/cli"
 	klog "github.com/go-kit/kit/log"
 	"github.com/piotrkowalczuk/sklog"
-	"os/signal"
 )
 
 func morphin(ctx *cli.Context) {
@@ -25,9 +26,16 @@ func morphin(ctx *cli.Context) {
 
 	sklog.Log(logger, sklog.KeyMessage, "Rangers, you must act swiftly, the development environment is in grave danger!", sklog.KeyLevel, sklog.LevelWarning, sklog.KeySubsystem, "zordon")
 
-	for _, r := range af.Service {
-		l := klog.NewContext(logger).With(keyColor, r.Color, keyColorReset, colorReset)
-		sklog.Info(l, fmt.Sprintf("%s!!!", strings.ToUpper(r.Name)), sklog.KeySubsystem, r.Name)
+	if ctx.Bool("install") {
+		for _, s := range af.Service {
+			l := klog.NewContext(logger).With(keyColor, s.Color, keyColorReset, colorReset)
+			install := exec.Command("go", "install", s.Import)
+			if err := run(install, s, l); err != nil {
+				sklog.Fatal(l, fmt.Errorf("%s installation error: %s", s.Name, err.Error()))
+			}
+
+			sklog.Info(l, fmt.Sprintf("%s!!!", strings.ToUpper(s.Name)), sklog.KeySubsystem, s.Name)
+		}
 	}
 
 	al := klog.NewContext(logger).With(sklog.KeySubsystem, "alpha", keyColorReset, colorReset)
@@ -62,7 +70,7 @@ func morphRanger(s *Service, l klog.Logger) {
 		cmd := exec.Command(s.Name, JoinArgs(s.Arguments)...)
 
 		if err := run(cmd, s, rl); err != nil {
-			if cmd.ProcessState != nil && cmd.ProcessState.Exited()  {
+			if cmd.ProcessState != nil && cmd.ProcessState.Exited() {
 				sklog.Error(rl, fmt.Errorf("service will be restarted because of error: %s", err.Error()))
 				continue
 			}
