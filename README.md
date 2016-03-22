@@ -15,7 +15,7 @@ $ go get github.com/piotrkowalczuk/zordon
 
 ## Commands
 
-* **morphintime** - starts all services in specified order. It performs restart on exit code 1.
+* **morphintime** - starts all services in specified order. It performs restart on exit code 1. Optional `--install` flag call `go install` for each service.
 * **powerup** - is trying to update each service. If any change is found by git, service will be skipped
 * **recruit** - install all services
 
