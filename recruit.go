@@ -9,7 +9,7 @@ import (
 	"github.com/piotrkowalczuk/sklog"
 )
 
-func recruit(ctx *cli.Context) {
+func recruit(ctx *cli.Context) error {
 	af, err := openAlphasfile(alphasFile)
 	if err != nil {
 		log.Fatal(err)
@@ -43,4 +43,5 @@ func recruit(ctx *cli.Context) {
 	}
 
 	sklog.Log(logger, sklog.KeyMessage, "Use extreme caution Rangers, you are dealing with an evil here that is beyond all imagination!", sklog.KeySubsystem, "zordon", keyColorReset, colorReset, sklog.KeyLevel, sklog.LevelInfo)
+	return nil
 }

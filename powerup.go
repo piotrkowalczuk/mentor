@@ -11,14 +11,14 @@ import (
 	"github.com/piotrkowalczuk/sklog"
 )
 
-func powerup(ctx *cli.Context) {
+func powerup(ctx *cli.Context) error {
 	af, err := openAlphasfile(alphasFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if len(af.Service) == 0 {
-		return
+		return nil
 	}
 
 	sklog.Warning(serviceLogger(logger, af.Service[0]), "We need Thunderzord power now!", sklog.KeySubsystem, af.Service[0].Name)
@@ -48,4 +48,5 @@ func powerup(ctx *cli.Context) {
 	}
 
 	sklog.Log(logger, sklog.KeyMessage, "ThunderZords shall be yours, powerful and agile. When joined together, all shall form the Thunder MegaZord.", sklog.KeySubsystem, "zordon", sklog.KeyLevel, sklog.LevelInfo, keyColorReset, colorReset)
+	return nil
 }

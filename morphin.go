@@ -18,7 +18,7 @@ import (
 	"github.com/piotrkowalczuk/sklog"
 )
 
-func morphin(ctx *cli.Context) {
+func morphin(ctx *cli.Context) error {
 	af, err := openAlphasfile(alphasFile)
 	if err != nil {
 		log.Fatal(err)
@@ -62,6 +62,7 @@ func morphin(ctx *cli.Context) {
 		go morphRanger(r, logger)
 	}
 	<-end
+	return nil
 }
 
 func morphRanger(s *Service, l klog.Logger) {
