@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"path/filepath"
+
 	"github.com/codegangsta/cli"
 	klog "github.com/go-kit/kit/log"
 	"github.com/piotrkowalczuk/sklog"
@@ -26,10 +28,26 @@ func morphin(ctx *cli.Context) error {
 
 	sklog.Log(logger, sklog.KeyMessage, "Rangers, you must act swiftly, the development environment is in grave danger!", sklog.KeyLevel, sklog.LevelWarning, sklog.KeySubsystem, "zordon")
 
+	var (
+		gopath string
+		ok     bool
+	)
+	if gopath, ok = os.LookupEnv("GOPATH"); !ok {
+		log.Fatalf("missing $GOPATH envrionmental variable")
+	}
+
 	if ctx.Bool("install") {
 		for _, s := range af.Service {
 			l := klog.NewContext(logger).With(keyColor, s.Color, keyColorReset, colorReset)
-			install := exec.Command("go", "install", s.Import)
+			var install *exec.Cmd
+			if s.Install == "" {
+				install = exec.Command("go", "install", s.Import)
+
+			} else {
+				install = exec.Command(s.Install)
+				install.Env = os.Environ()
+				install.Dir = filepath.Join(gopath, "src", s.Import)
+			}
 			if err := run(install, s, l); err != nil {
 				sklog.Fatal(l, fmt.Errorf("%s installation error: %s", s.Name, err.Error()))
 			}

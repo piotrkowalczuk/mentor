@@ -23,6 +23,7 @@ type Service struct {
 	Name      string                 `hcl:"name,key"`
 	Import    string                 `hcl:"import"`
 	Branch    string                 `hlc:"branch"`
+	Install   string                 `hlc:"install"`
 	Arguments map[string]interface{} `hcl:"arguments"`
 	Log       string                 `hcl:"log"`
 	Color     string                 `hcl:"color"`
