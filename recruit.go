@@ -19,8 +19,8 @@ func recruit(ctx *cli.Context) error {
 	sklog.Log(logger, sklog.KeyMessage, "Understood, Zordon!", sklog.KeySubsystem, "alpha", sklog.KeyLevel, sklog.LevelInfo)
 
 	for _, s := range af.Service {
-		install := exec.Command("go", "get", "-t", s.Import)
-		if err = run(install, s, logger); err != nil {
+		goget := exec.Command("go", "get", "-t", "-d", s.Import)
+		if err = run(goget, s, logger); err != nil {
 			sklog.Fatal(logger, fmt.Errorf("Ayiyiyiyi!: %s", err.Error()), sklog.KeySubsystem, "alpha")
 		}
 
