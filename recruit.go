@@ -19,15 +19,6 @@ func recruit(ctx *cli.Context) error {
 	sklog.Log(logger, sklog.KeyMessage, "Understood, Zordon!", sklog.KeySubsystem, "alpha", sklog.KeyLevel, sklog.LevelInfo)
 
 	for _, s := range af.Service {
-		modified, err := isGitModifiedLocaly(s)
-		if err != nil {
-			sklog.Fatal(logger, fmt.Errorf("Ayiyiyiyi!: %s", err.Error()), sklog.KeySubsystem, "alpha")
-		}
-		if modified {
-			sklog.Warning(logger, fmt.Sprintf("%s modified, cannot be installed", s.Name), sklog.KeySubsystem, "zordon", keyColorReset, colorReset)
-			continue
-		}
-
 		install := exec.Command("go", "get", "-t", s.Import)
 		if err = run(install, s, logger); err != nil {
 			sklog.Fatal(logger, fmt.Errorf("Ayiyiyiyi!: %s", err.Error()), sklog.KeySubsystem, "alpha")
