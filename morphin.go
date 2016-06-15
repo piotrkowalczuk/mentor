@@ -86,7 +86,7 @@ func morphin(ctx *cli.Context) error {
 func morphRanger(s *Service, l klog.Logger) {
 	rl := serviceLogger(l, s)
 	for {
-		cmd := exec.Command(s.Name, JoinArgs(s.Arguments)...)
+		cmd := exec.Command(s.Name, s.Flags()...)
 
 		if err := run(cmd, s, rl); err != nil {
 			if cmd.ProcessState != nil && cmd.ProcessState.Exited() {

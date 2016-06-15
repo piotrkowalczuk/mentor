@@ -20,20 +20,27 @@ type Alphasfile struct {
 }
 
 type Service struct {
-	Name      string                 `hcl:"name,key"`
-	Import    string                 `hcl:"import"`
-	Branch    string                 `hlc:"branch"`
-	Install   string                 `hlc:"install"`
-	Arguments map[string]interface{} `hcl:"arguments"`
-	Log       string                 `hcl:"log"`
-	Color     string                 `hcl:"color"`
-	Fields    []string               `hcl:",decodedFields"`
+	Name       string                 `hcl:"name,key"`
+	Import     string                 `hcl:"import"`
+	Branch     string                 `hcl:"branch"`
+	Install    string                 `hcl:"install"`
+	DoubleDash bool                   `hcl:"doubleDash"`
+	Arguments  map[string]interface{} `hcl:"arguments"`
+	Log        string                 `hcl:"log"`
+	Color      string                 `hcl:"color"`
+	Fields     []string               `hcl:",decodedFields"`
 }
 
-// JoinArgs ...
-func JoinArgs(args map[string]interface{}) []string {
-	r := make([]string, 0, len(args))
-	for flag, value := range args {
+// Flags returns slice of strings that represents provided flags.
+// With single or double dash before each.
+// Depends on configuration.
+func (s *Service) Flags() []string {
+	r := make([]string, 0, len(s.Arguments))
+	for flag, value := range s.Arguments {
+		if s.DoubleDash {
+			r = append(r, fmt.Sprintf("--%s=%v", flag, value))
+			continue
+		}
 		r = append(r, fmt.Sprintf("-%s=%v", flag, value))
 	}
 
