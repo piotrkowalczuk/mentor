@@ -29,6 +29,7 @@ type Service struct {
 	Log        string                 `hcl:"log"`
 	Color      string                 `hcl:"color"`
 	Fields     []string               `hcl:",decodedFields"`
+	Dir        string                 `hcl:"dir"`
 }
 
 // Flags returns slice of strings that represents provided flags.

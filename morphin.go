@@ -87,6 +87,7 @@ func morphRanger(s *Service, l klog.Logger) {
 	rl := serviceLogger(l, s)
 	for {
 		cmd := exec.Command(s.Name, s.Flags()...)
+		cmd.Dir = s.Dir
 
 		if err := run(cmd, s, rl); err != nil {
 			if cmd.ProcessState != nil && cmd.ProcessState.Exited() {
